@@ -1,4 +1,6 @@
 ﻿
+using AutoMapper;
+using FilmesApi.Data;
 using FilmesApi.Models;
 using Microsoft.AspNetCore.Mvc;
 
@@ -9,25 +11,38 @@ namespace FilmesApi.Controllers
 
     public class FilmeController : ControllerBase
     {
-        private static List<Filme> filmes = new List<Filme>();
-        
-        [HttpPost]        
-        public IActionResult AdicionaFilme([FromBody] Filme filme)
-        {
-            if (!string.IsNullOrEmpty(filme.Titulo)) 
-            {
-                filmes.Add(filme);
-                filme.mostrarInfo();
+        private FilmeContext _context;
+        private IMapper _mapper;
 
-            }
-            return Ok("Filme Includio com Sucesso");
-            
+        public FilmeController(FilmeContext context, IMapper mapper)
+        {
+            _context = context;
+            _mapper  = mapper;
+        }
+
+        [HttpPost]
+        public IActionResult AdicionaFilme([FromBody] CreateFilmeDto filmeDto)
+        {
+            Filme filme = _mapper.Map<Filme>(filmeDto);
+            _context.Filmes.Add(filme);
+            _context.SaveChanges();
+            return CreatedAtAction(nameof(RecuperarFilmePorId), new { id = filme.Id }, filme);
         }
 
         [HttpGet]
-        public IActionResult ListaFilme()
+        public IEnumerable<Filme> RecuperaFilmes([FromQuery] int skip = 0, [FromQuery] int take = 50)
         {
-            return Ok(filmes);
+            return _context.Filmes.Skip(skip).Take(take);
+        }
+        [HttpGet("{id}")]
+        public IActionResult RecuperarFilmePorId(int id)
+        {
+            var filmesSelecionado = _context.Filmes.FirstOrDefault(filme => filme.Id == id);
+
+            if (filmesSelecionado == null) return NotFound();
+
+            return Ok(filmesSelecionado);
+
         }
     }
 }
