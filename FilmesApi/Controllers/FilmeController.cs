@@ -2,6 +2,7 @@
 using AutoMapper;
 using FilmesApi.Data;
 using FilmesApi.Data.Dtos;
+using FilmesApi.Data.Dtos.Filme;
 using FilmesApi.Models;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
@@ -32,10 +33,13 @@ namespace FilmesApi.Controllers
         }
 
         [HttpGet]
-        public IEnumerable<Filme> RecuperaFilmes([FromQuery] int skip = 0, [FromQuery] int take = 50)
+        public IEnumerable<ReadFilmeDto> RecuperaFilmes([FromQuery] int skip = 0,
+       [FromQuery] int take = 50)
         {
-            return _context.Filmes.Skip(skip).Take(take);
+            return _mapper.Map<List<ReadFilmeDto>>(_context.Filmes.Skip(skip).Take(take).ToList());
         }
+
+
         [HttpGet("{id}")]
         public IActionResult RecuperarFilmePorId(int id)
         {
